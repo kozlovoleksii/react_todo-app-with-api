@@ -9,26 +9,32 @@ type Props = {
   title: string;
   handleChangeInput: (e: ChangeEvent<HTMLInputElement>) => void;
   loader: boolean;
-  handleToogleAll:()=>void
+  handleToogleAll: () => void;
+  todoList: Todo[];
 };
 
 export const Header: React.FC<Props> = ({
-  filteredTodoList,
   submitTodo,
   inputRef,
   title,
   handleChangeInput,
   loader,
-  handleToogleAll
+  handleToogleAll,
+  todoList,
 }) => {
   return (
     <header className="todoapp__header">
-      <button
-        type="button"
-        className={classNames('todoapp__toggle-all', {"active":filteredTodoList.length > 0 && filteredTodoList.every(todo => todo.completed)})}
-        data-cy="ToggleAllButton"
-        onClick={handleToogleAll}
-      />
+      {todoList.length > 0 && (
+        <button
+          type="button"
+          className={classNames('todoapp__toggle-all', {
+            active:
+              todoList.length > 0 && todoList.every(todo => todo.completed),
+          })}
+          data-cy="ToggleAllButton"
+          onClick={handleToogleAll}
+        />
+      )}
 
       <form onSubmit={submitTodo}>
         <input

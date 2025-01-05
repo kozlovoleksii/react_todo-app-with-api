@@ -8,13 +8,13 @@ export const MainSection: React.FC<TypeTodoList> = ({
   handleToggleCompletion,
   handleDeleteTodo,
   tempTodo,
-  handleUpdateTodo,
+  // handleUpdateTodo,
   setTitle,
   setTodoList,
   setErrorMessage,
   setLoader,
   setTempTodo,
-  setDeletingTodos
+  setDeletingTodos,
 }) => {
   return (
     <section className="todoapp__main" data-cy="TodoList">
@@ -23,7 +23,6 @@ export const MainSection: React.FC<TypeTodoList> = ({
         deletingTodos={deletingTodos}
         handleToggleCompletion={handleToggleCompletion}
         handleDeleteTodo={handleDeleteTodo}
-        handleUpdateTodo={handleUpdateTodo}
         setTitle={setTitle}
         setTodoList={setTodoList}
         setErrorMessage={setErrorMessage}

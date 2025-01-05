@@ -13,11 +13,10 @@ export type TypeTodoList = {
   handleToggleCompletion: (numb: number) => void;
   handleDeleteTodo: (numb: number) => void;
   tempTodo?: Todo | null;
-  handleUpdateTodo: (todo: Todo) => void;
   setTitle: Dispatch<SetStateAction<string>>;
   setTodoList: Dispatch<SetStateAction<Todo[]>>;
   setErrorMessage: Dispatch<SetStateAction<string>>;
-  setLoader:Dispatch<SetStateAction<boolean>>
-  setTempTodo:Dispatch<SetStateAction<Todo | null>>
-  setDeletingTodos:Dispatch<SetStateAction<number[] | []>>
+  setLoader: Dispatch<SetStateAction<boolean>>;
+  setTempTodo: Dispatch<SetStateAction<Todo | null>>;
+  setDeletingTodos: Dispatch<SetStateAction<number[] | []>>;
 };

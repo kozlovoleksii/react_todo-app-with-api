@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import { Todo, TypeTodoList } from '../types/Todo';
 import React, { useEffect, useRef, useState } from 'react';
-import { deleteTodo, updateTodo} from '../api/todos';
+import { deleteTodo, updateTodo } from '../api/todos';
 import { sendErrorMessage } from './errorsUnderFooter';
 
 export const TodoList: React.FC<TypeTodoList> = ({
@@ -9,14 +9,14 @@ export const TodoList: React.FC<TypeTodoList> = ({
   deletingTodos,
   handleToggleCompletion,
   handleDeleteTodo,
-  handleUpdateTodo,
+  // handleUpdateTodo,
   setTodoList,
   setErrorMessage,
-  setLoader,
-  setDeletingTodos
+  setDeletingTodos,
 }) => {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editedTitle, setEditedTitle] = useState<string>('');
+  const [updatingTodos, setUpdatingTodos] = useState<number[]>([]);
   const refInputUpdate = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -38,72 +38,70 @@ export const TodoList: React.FC<TypeTodoList> = ({
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [editingId, editedTitle]);
+  }, [editingId, filteredTodoList]);
 
   const handleEditStart = (todo: Todo) => {
     setEditingId(todo.id);
     setEditedTitle(todo.title);
   };
 
-  async function handleEditSubmit(todo: Todo) {
-    setLoader(true);
+  async function handleEditSubmit(editingTodo: Todo) {
+    if (editedTitle === editingTodo.title && editingId === editingTodo.id) {
+      setEditingId(null);
 
-    const updatedTodo = { ...todo, title: editedTitle.trim() };
+      return;
+    }
+
+    const updatedTodo = { ...editingTodo, title: editedTitle.trim() };
 
     if (editedTitle.trim() === '') {
-      setDeletingTodos(prev => [...prev, todo.id]);
-
+      // Видалення туду
+      setDeletingTodos(prev => [...prev, editingTodo.id]);
       try {
         await deleteTodo(updatedTodo.id);
         setTodoList(prevTodoList =>
           prevTodoList.filter(todo => todo.id !== updatedTodo.id),
         );
-        // if (refInputUpdate.current) {
-        //   refInputUpdate.current.focus();
-        // }
         setEditingId(null);
         setEditedTitle('');
-       
       } catch (error) {
-
         sendErrorMessage('Unable to update a todo', setErrorMessage);
-        throw error;
-        
+      } finally {
+        setDeletingTodos(prev => prev.filter(id => id !== editingTodo.id));
       }
-      finally {
-        setDeletingTodos(prev => prev.filter(id => id !== todo.id));
-        setLoader(false)
-      }
-
     } else {
-      updateTodo(updatedTodo)
-        .then(updatedTodo => {
-          setTodoList(prevTodoList =>
-            prevTodoList.map(t => (t.id === updatedTodo.id ? updatedTodo : t)),
-          );
+      // Оновлення туду
+      setUpdatingTodos(prev => [...prev, editingTodo.id]);
+      try {
+        const updatedTodoFromApi = await updateTodo(updatedTodo);
 
-          setEditingId(null);
-          setEditedTitle('');
-        })
-        .catch(error => {
-
-          sendErrorMessage('Unable to update todo', setErrorMessage);
-          throw error;
-        })
-        .finally(() => setLoader(false));
+        setTodoList(prevTodoList =>
+          prevTodoList.map(t =>
+            t.id === updatedTodoFromApi.id ? updatedTodoFromApi : t,
+          ),
+        );
+        setEditingId(null);
+        setEditedTitle('');
+      } catch (error) {
+        sendErrorMessage('Unable to update a todo', setErrorMessage);
+      } finally {
+        setUpdatingTodos(prev => prev.filter(id => id !== editingTodo.id));
+      }
     }
   }
- 
+
   return (
     <>
       {filteredTodoList.map(todo => {
         const { id, title, completed } = todo;
+
         return (
           <div
             data-cy="Todo"
             className={classNames('todo', {
               completed: completed,
-              'todo--loading': deletingTodos.includes(id),
+              'todo--loading':
+                deletingTodos.includes(id) || updatingTodos.includes(id),
             })}
             key={todo.id}
           >
@@ -116,9 +114,7 @@ export const TodoList: React.FC<TypeTodoList> = ({
                 checked={todo.completed}
                 id={`todo-status-${todo.id}`}
                 onChange={() => {
-                  const updateTodo = { ...todo, completed: !completed };
                   handleToggleCompletion(id);
-                  handleUpdateTodo(updateTodo);
                 }}
                 disabled={deletingTodos.includes(id)}
               />
@@ -130,7 +126,6 @@ export const TodoList: React.FC<TypeTodoList> = ({
                   data-cy="TodoTitle"
                   className="todo__title"
                   onDoubleClick={() => handleEditStart(todo)}
-    
                 >
                   {title}
                 </span>
@@ -167,7 +162,8 @@ export const TodoList: React.FC<TypeTodoList> = ({
             <div
               data-cy="TodoLoader"
               className={classNames('modal overlay', {
-                'is-active': deletingTodos.includes(id),
+                'is-active':
+                  deletingTodos.includes(id) || updatingTodos.includes(id),
               })}
             >
               <div className="modal-background has-background-white-ter" />

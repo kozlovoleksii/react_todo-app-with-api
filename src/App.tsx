@@ -17,6 +17,7 @@ import { ErrorMessage } from './components/errorsUnderFooter';
 import { MainSection } from './components/section';
 import { Header } from './components/header';
 import { Filter } from './types/Filter';
+import classNames from 'classnames';
 
 export const App: React.FC = () => {
   const [todoList, setTodoList] = useState<Todo[]>([]);
@@ -26,6 +27,7 @@ export const App: React.FC = () => {
   const [tempTodo, setTempTodo] = useState<Todo | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [deletingTodos, setDeletingTodos] = useState<number[]>([]);
+  const [toogleAllTodos, setToogleAllTodos] = useState<number[]>([]);
   const [errorMessage, setErrorMessage] = useState<string>('');
 
   useEffect(() => {
@@ -61,39 +63,44 @@ export const App: React.FC = () => {
     return <UserWarning />;
   }
 
+  // відповідає за зміну статусу у ОДНОГО туду
   function handleToggleCompletion(todoId: number) {
     const todoToUpdate = todoList.find(todo => todo.id === todoId);
-  
-    if (!todoToUpdate) return; 
+
+    if (!todoToUpdate) {
+      return;
+    }
+
     const updatedTodo = { ...todoToUpdate, completed: !todoToUpdate.completed };
-  
+
     setDeletingTodos(prev => [...prev, todoId]);
-  
+
     updateTodo(updatedTodo)
       .then(todoFromApi => {
         setTodoList(prevTodos =>
-          prevTodos.map(todo =>
-            todo.id === todoId ? todoFromApi : todo
-          ),
+          prevTodos.map(todo => (todo.id === todoId ? todoFromApi : todo)),
         );
       })
       .catch(() => {
-        sendErrorMessage('Unable to update todo', setErrorMessage);
+        sendErrorMessage('Unable to update a todo', setErrorMessage);
       })
       .finally(() => {
         setDeletingTodos(prev => prev.filter(id => id !== todoId));
       });
   }
 
+  // відповідає за збереження назви
   function handleChangeInput(e: React.ChangeEvent<HTMLInputElement>) {
     setTitle(e.target.value);
   }
 
+  // відповідає за додавання НОВОГО туду
   function submitTodo(e: React.FormEvent) {
     e.preventDefault();
 
     if (title.trim() === '') {
       sendErrorMessage('Title should not be empty', setErrorMessage);
+
       return;
     }
 
@@ -126,6 +133,7 @@ export const App: React.FC = () => {
       });
   }
 
+  // відповідає за видалення ОДНОГО туду
   async function handleDeleteTodo(todoId: number) {
     setDeletingTodos(prev => [...prev, todoId]);
 
@@ -134,13 +142,16 @@ export const App: React.FC = () => {
       setTodoList(prevTodoList =>
         prevTodoList.filter(todo => todo.id !== todoId),
       );
-    } catch {
+    } catch (error) {
       sendErrorMessage('Unable to delete a todo', setErrorMessage);
+
+      throw error;
     } finally {
       setDeletingTodos(prev => prev.filter(id => id !== todoId));
     }
   }
 
+  // відповідає за видалення ВСІХ туду які мають статут виконані
   const handleDeleteCompletedTodo = async () => {
     const completedTodoIds = todoList
       .filter(todo => todo.completed)
@@ -166,35 +177,41 @@ export const App: React.FC = () => {
     }
   };
 
-  function handleUpdateTodo(updatedTodo: Todo) {
-    setLoader(true);
-    updateTodo(updatedTodo)
-      .then(todoFromApi => {
-        setTodoList(prevTodoList => {
-          let updatedTodos = [...prevTodoList];
-          let index = updatedTodos.findIndex(
-            todo => todo.id === todoFromApi.id);
-          updatedTodos.splice(index, 1, todoFromApi);
-          return updatedTodos;
-        });
-      })
-      .catch((error) => {
-        setTodoList(todoList)
-        sendErrorMessage('Unable to update todo', setErrorMessage)
-        throw error
-      })
-      .finally(()=>setLoader(false))
-  }
+  // відповідає за ЗМІНУ статусу на ВИКОНАНИЙ всіх туду
+  const handleToogleAll = async () => {
+    const completedAll = todoList.every(todo => todo.completed); //false
+    const todosToUpdate = todoList.filter(
+      todo => todo.completed === completedAll,
+    ); //масив там де комплітед === false (test2)
 
-  function handleToogleAll() {
-    const completedAll = todoList.every(todo => todo.completed);
-    setTodoList(prevList =>
-      prevList.map(todo => ({ ...todo, completed: !completedAll })),
-    );
-  }
+    if (todosToUpdate.length === 0) {
+      setToogleAllTodos(toogleAllTodos);
+    }
+
+    setToogleAllTodos(todoList.map(todo => todo.id));
+
+    try {
+      const todosFromApi = await Promise.all(
+        todosToUpdate.map(todo =>
+          updateTodo({ ...todo, completed: !completedAll }),
+        ),
+      );
+
+      setTodoList(prevTodoList =>
+        prevTodoList.map(
+          todo => todosFromApi.find(updated => updated.id === todo.id) || todo,
+        ),
+      );
+    } catch (error) {
+      sendErrorMessage('Unable to toggle all todos', setErrorMessage);
+      // throw error;
+    } finally {
+      setToogleAllTodos([]);
+    }
+  };
 
   return (
-    <div className="todoapp">
+    <div className={classNames('todoapp', { 'has-error': errorMessage })}>
       <h1 className="todoapp__title">todos</h1>
 
       <div className="todoapp__content">
@@ -206,6 +223,7 @@ export const App: React.FC = () => {
           handleChangeInput={handleChangeInput}
           loader={loader}
           handleToogleAll={handleToogleAll}
+          todoList={todoList}
         />
 
         <MainSection
@@ -214,7 +232,6 @@ export const App: React.FC = () => {
           handleToggleCompletion={handleToggleCompletion}
           handleDeleteTodo={handleDeleteTodo}
           tempTodo={tempTodo}
-          handleUpdateTodo={handleUpdateTodo}
           setTitle={setTitle}
           setTodoList={setTodoList}
           setErrorMessage={setErrorMessage}

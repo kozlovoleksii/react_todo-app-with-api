@@ -15,8 +15,9 @@ import { Filter } from './types/Filter';
 import classNames from 'classnames';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
-import { MainSection } from './components/Section';
 import { ErrorMessage, sendErrorMessage } from './components/ErrorsUnderFooter';
+import { TodoList } from './components/TodoList';
+import { TempTodo } from './components/TempTodo';
 
 export const App: React.FC = () => {
   const [todoList, setTodoList] = useState<Todo[]>([]);
@@ -182,6 +183,7 @@ export const App: React.FC = () => {
     }
 
     setToogleAllTodos(todoList.map(todo => todo.id));
+    setDeletingTodos(todoList.map(todo => todo.id))
 
     try {
       const todosFromApi = await Promise.all(
@@ -199,6 +201,7 @@ export const App: React.FC = () => {
       sendErrorMessage('Unable to toggle all todos', setErrorMessage);
     } finally {
       setToogleAllTodos([]);
+      setDeletingTodos([])
     }
   };
 
@@ -217,20 +220,22 @@ export const App: React.FC = () => {
           handleToogleAll={handleToogleAll}
           todoList={todoList}
         />
+         <section className="todoapp__main" data-cy="TodoList">
+      <TodoList
+        filteredTodoList={filterTodos}
+        deletingTodos={deletingTodos}
+        handleToggleCompletion={handleToggleCompletion}
+        handleDeleteTodo={handleDeleteTodo}
+        setTitle={setTitle}
+        setTodoList={setTodoList}
+        setErrorMessage={setErrorMessage}
+        setLoader={setLoader}
+        setTempTodo={setTempTodo}
+        setDeletingTodos={setDeletingTodos}
+      />
 
-        <MainSection
-          filteredTodoList={filterTodos}
-          deletingTodos={deletingTodos}
-          handleToggleCompletion={handleToggleCompletion}
-          handleDeleteTodo={handleDeleteTodo}
-          tempTodo={tempTodo}
-          setTitle={setTitle}
-          setTodoList={setTodoList}
-          setErrorMessage={setErrorMessage}
-          setLoader={setLoader}
-          setTempTodo={setTempTodo}
-          setDeletingTodos={setDeletingTodos}
-        />
+      <TempTodo tempTodo={tempTodo} />
+    </section>
 
         {todoList.length > 0 && (
           <Footer

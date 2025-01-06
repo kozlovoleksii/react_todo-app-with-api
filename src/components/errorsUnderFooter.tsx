@@ -15,7 +15,10 @@ type Props = {
   removeMessageMessage: () => void;
 };
 
-export const ErrorMessage: React.FC<Props> = ({ message, removeMessageMessage }) => {
+export const ErrorMessage: React.FC<Props> = ({
+  message,
+  removeMessageMessage,
+}) => {
   return (
     <div
       data-cy="ErrorNotification"

@@ -19,4 +19,5 @@ export type TypeTodoList = {
   setLoader: Dispatch<SetStateAction<boolean>>;
   setTempTodo: Dispatch<SetStateAction<Todo | null>>;
   setDeletingTodos: Dispatch<SetStateAction<number[] | []>>;
+  
 };

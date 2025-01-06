@@ -12,10 +12,10 @@ export function sendErrorMessage(
 
 type Props = {
   message: string;
-  clearMessage: () => void;
+  removeMessage: () => void;
 };
 
-export const ErrorMessage: React.FC<Props> = ({ message, clearMessage }) => {
+export const ErrorMessage: React.FC<Props> = ({ message, removeMessage }) => {
   return (
     <div
       data-cy="ErrorNotification"
@@ -28,7 +28,7 @@ export const ErrorMessage: React.FC<Props> = ({ message, clearMessage }) => {
         data-cy="HideErrorButton"
         type="button"
         className="delete"
-        onClick={clearMessage}
+        onClick={removeMessage}
       />
       {message}
     </div>

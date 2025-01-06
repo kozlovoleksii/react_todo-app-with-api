@@ -244,7 +244,7 @@ export const App: React.FC = () => {
 
       <ErrorMessage
         message={errorMessage}
-        removeMessage={() => setErrorMessage('')}
+        removeMessageMessage={() => setErrorMessage('')}
       />
     </div>
   );

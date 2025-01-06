@@ -1,6 +1,6 @@
-import { TodoList } from './todoList';
 import { TypeTodoList } from '../types/Todo';
-import { TempTodo } from './tempTodo';
+import { TempTodo } from './TempTodo';
+import { TodoList } from './TodoList';
 
 export const MainSection: React.FC<TypeTodoList> = ({
   filteredTodoList,
@@ -8,7 +8,6 @@ export const MainSection: React.FC<TypeTodoList> = ({
   handleToggleCompletion,
   handleDeleteTodo,
   tempTodo,
-  // handleUpdateTodo,
   setTitle,
   setTodoList,
   setErrorMessage,

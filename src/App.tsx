@@ -10,14 +10,13 @@ import {
   USER_ID,
 } from './api/todos';
 import { Todo } from './types/Todo';
-import { sendErrorMessage } from './components/errorsUnderFooter';
 import { useRef } from 'react';
-import { Footer } from './components/footer';
-import { ErrorMessage } from './components/errorsUnderFooter';
-import { MainSection } from './components/section';
-import { Header } from './components/header';
 import { Filter } from './types/Filter';
 import classNames from 'classnames';
+import { Header } from './components/Header';
+import { Footer } from './components/Footer';
+import { MainSection } from './components/Section';
+import { ErrorMessage, sendErrorMessage } from './components/ErrorsUnderFooter';
 
 export const App: React.FC = () => {
   const [todoList, setTodoList] = useState<Todo[]>([]);
@@ -63,8 +62,7 @@ export const App: React.FC = () => {
     return <UserWarning />;
   }
 
-  // відповідає за зміну статусу у ОДНОГО туду
-  function handleToggleCompletion(todoId: number) {
+  const handleToggleCompletion = (todoId: number) => {
     const todoToUpdate = todoList.find(todo => todo.id === todoId);
 
     if (!todoToUpdate) {
@@ -87,15 +85,13 @@ export const App: React.FC = () => {
       .finally(() => {
         setDeletingTodos(prev => prev.filter(id => id !== todoId));
       });
-  }
+  };
 
-  // відповідає за збереження назви
-  function handleChangeInput(e: React.ChangeEvent<HTMLInputElement>) {
+  const handleChangeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTitle(e.target.value);
-  }
+  };
 
-  // відповідає за додавання НОВОГО туду
-  function submitTodo(e: React.FormEvent) {
+  const submitTodo = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (title.trim() === '') {
@@ -131,10 +127,9 @@ export const App: React.FC = () => {
       .finally(() => {
         setLoader(false);
       });
-  }
+  };
 
-  // відповідає за видалення ОДНОГО туду
-  async function handleDeleteTodo(todoId: number) {
+  const handleDeleteTodo = async (todoId: number) => {
     setDeletingTodos(prev => [...prev, todoId]);
 
     try {
@@ -149,9 +144,8 @@ export const App: React.FC = () => {
     } finally {
       setDeletingTodos(prev => prev.filter(id => id !== todoId));
     }
-  }
+  };
 
-  // відповідає за видалення ВСІХ туду які мають статут виконані
   const handleDeleteCompletedTodo = async () => {
     const completedTodoIds = todoList
       .filter(todo => todo.completed)
@@ -177,12 +171,11 @@ export const App: React.FC = () => {
     }
   };
 
-  // відповідає за ЗМІНУ статусу на ВИКОНАНИЙ всіх туду
   const handleToogleAll = async () => {
-    const completedAll = todoList.every(todo => todo.completed); //false
+    const completedAll = todoList.every(todo => todo.completed);
     const todosToUpdate = todoList.filter(
       todo => todo.completed === completedAll,
-    ); //масив там де комплітед === false (test2)
+    );
 
     if (todosToUpdate.length === 0) {
       setToogleAllTodos(toogleAllTodos);
@@ -204,7 +197,6 @@ export const App: React.FC = () => {
       );
     } catch (error) {
       sendErrorMessage('Unable to toggle all todos', setErrorMessage);
-      // throw error;
     } finally {
       setToogleAllTodos([]);
     }

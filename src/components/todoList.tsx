@@ -2,14 +2,13 @@ import classNames from 'classnames';
 import { Todo, TypeTodoList } from '../types/Todo';
 import React, { useEffect, useRef, useState } from 'react';
 import { deleteTodo, updateTodo } from '../api/todos';
-import { sendErrorMessage } from './errorsUnderFooter';
+import { sendErrorMessage } from './ErrorsUnderFooter';
 
 export const TodoList: React.FC<TypeTodoList> = ({
   filteredTodoList,
   deletingTodos,
   handleToggleCompletion,
   handleDeleteTodo,
-  // handleUpdateTodo,
   setTodoList,
   setErrorMessage,
   setDeletingTodos,
@@ -45,7 +44,7 @@ export const TodoList: React.FC<TypeTodoList> = ({
     setEditedTitle(todo.title);
   };
 
-  async function handleEditSubmit(editingTodo: Todo) {
+  const handleEditSubmit = async (editingTodo: Todo) => {
     if (editedTitle === editingTodo.title && editingId === editingTodo.id) {
       setEditingId(null);
 
@@ -55,7 +54,6 @@ export const TodoList: React.FC<TypeTodoList> = ({
     const updatedTodo = { ...editingTodo, title: editedTitle.trim() };
 
     if (editedTitle.trim() === '') {
-      // Видалення туду
       setDeletingTodos(prev => [...prev, editingTodo.id]);
       try {
         await deleteTodo(updatedTodo.id);
@@ -70,7 +68,6 @@ export const TodoList: React.FC<TypeTodoList> = ({
         setDeletingTodos(prev => prev.filter(id => id !== editingTodo.id));
       }
     } else {
-      // Оновлення туду
       setUpdatingTodos(prev => [...prev, editingTodo.id]);
       try {
         const updatedTodoFromApi = await updateTodo(updatedTodo);
@@ -88,7 +85,7 @@ export const TodoList: React.FC<TypeTodoList> = ({
         setUpdatingTodos(prev => prev.filter(id => id !== editingTodo.id));
       }
     }
-  }
+  };
 
   return (
     <>
@@ -113,9 +110,7 @@ export const TodoList: React.FC<TypeTodoList> = ({
                 className="todo__status"
                 checked={todo.completed}
                 id={`todo-status-${todo.id}`}
-                onChange={() => {
-                  handleToggleCompletion(id);
-                }}
+                onChange={() => handleToggleCompletion(id)}
                 disabled={deletingTodos.includes(id)}
               />
             </label>
